@@ -14,15 +14,18 @@ q3 = df['macro_state_1'].quantile(0.75)
 iqr = q3 - q1
 lower_bound = q1 - 1.5 * iqr
 upper_bound = q3 + 1.5 * iqr
-outliers_macro_state_1 = df[(df['macro_state_1'] < lower_bound) | (df['macro_state_1'] > upper_bound)]
-
-# Save the outliers
-outliers_macro_state_1.to_csv('outliers_macro_state_1.csv', index=False)
 
 # Replace outliers in macro_state_1 with the median
 median_macro_state_1 = df['macro_state_1'].median()
 df.loc[
     (df['macro_state_1'] < lower_bound) | (df['macro_state_1'] > upper_bound), 'macro_state_1'] = median_macro_state_1
+
+# print the parameters used
+print('macro_state_1')
+print('lower_bound:', lower_bound)
+print('upper_bound:', upper_bound)
+print('median_macro_state_1:', median_macro_state_1)
+
 
 # Identify and save outliers for macro_state_2
 q1 = df['macro_state_2'].quantile(0.25)
@@ -30,15 +33,18 @@ q3 = df['macro_state_2'].quantile(0.75)
 iqr = q3 - q1
 lower_bound = q1 - 1.5 * iqr
 upper_bound = q3 + 1.5 * iqr
-outliers_macro_state_2 = df[(df['macro_state_2'] < lower_bound) | (df['macro_state_2'] > upper_bound)]
-
-# Save the outliers
-outliers_macro_state_2.to_csv('outliers_macro_state_2.csv', index=False)
 
 # Replace outliers in macro_state_2 with the median
 median_macro_state_2 = df['macro_state_2'].median()
 df.loc[
     (df['macro_state_2'] < lower_bound) | (df['macro_state_2'] > upper_bound), 'macro_state_2'] = median_macro_state_2
+
+# print the parameters used
+print('macro_state_2')
+print('lower_bound:', lower_bound)
+print('upper_bound:', upper_bound)
+print('median_macro_state_2:', median_macro_state_2)
+
 
 # Transform macro_state_1 and macro_state_2 with polynomial features including bias
 poly = PolynomialFeatures(degree=2, include_bias=True)
@@ -105,7 +111,7 @@ for name, features in combinations.items():
     # Save the results
     result = {
         'Combination': name,
-        'Average CV R²': mean_cv_score
+        'Average CV R2': mean_cv_score
     }
     for feature in ['Intercept'] + all_features:
         result[feature] = coefficients_dict.get(feature, '')
@@ -122,20 +128,4 @@ print(results_df)
 results_df.to_csv('model_comparison_results.csv', index=False)
 
 # Save the model parameters for the best combination
-best_combination = results_df.loc[results_df['Average CV R²'].idxmax()]
-
-# Save the best model parameters
-model_params = {
-    'intercept': best_combination['Intercept'],
-    'coefficients': [best_combination[feature] for feature in all_features if best_combination[feature] != '']
-}
-with open('linear_model_params.pkl', 'wb') as f:
-    pickle.dump(model_params, f)
-
-# Save the polynomial feature names
-poly_feature_names = {
-    'macro_state_1': ['macro_state_1', 'macro_state_1^2'],
-    'macro_state_2': ['macro_state_2', 'macro_state_2^2']
-}
-with open('poly_feature_names.pkl', 'wb') as f:
-    pickle.dump(poly_feature_names, f)
+best_combination = results_df.loc[results_df['Average CV R2'].idxmax()]
